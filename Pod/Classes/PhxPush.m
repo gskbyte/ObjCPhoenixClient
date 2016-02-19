@@ -14,34 +14,30 @@
 @interface PhxPush ()
 
 @property (nonatomic, weak) PhxChannel *channel;
-@property (nonatomic, retain) NSString *event;
-@property (nonatomic, retain) NSString *refEvent;
-@property (nonatomic, retain) NSDictionary *payload;
+@property (nonatomic) NSString *event;
+@property (nonatomic) NSString *refEvent;
+@property (nonatomic) NSDictionary *payload;
 
 @property (nonatomic, copy) After afterHook;
-@property (readwrite) int afterInterval;
-@property (nonatomic, retain) NSTimer *afterTimer;
+@property NSTimeInterval afterInterval;
+@property (nonatomic) NSTimer *afterTimer;
 
 @property (nonatomic, retain) NSMutableArray *recHooks;
 @property (nonatomic, retain) id receivedResp;
-@property (readwrite) BOOL sent;
+@property BOOL sent;
 
 @end
 
 @implementation PhxPush
 
-- (id)initWithChannel:(PhxChannel*)channel
-                event:(NSString*)event
-              payload:(NSDictionary*)payload {
+- (instancetype)initWithChannel:(PhxChannel*)channel
+                          event:(NSString*)event
+                        payload:(NSDictionary*)payload {
     self = [super init];
     if (self) {
         self.channel = channel;
         self.event = event;
-        if (payload) {
-            self.payload = payload;
-        } else {
-            self.payload = @{};
-        }
+        self.payload = payload;
         self.receivedResp = nil;
         self.afterHook = nil;
         self.recHooks = [NSMutableArray new];
@@ -51,7 +47,7 @@
 }
 
 - (void)send {
-    const NSString *ref = [self.channel.socket makeRef];
+    NSString *ref = [self.channel.socket makeRef];
     self.refEvent = [self.channel replyEventName:ref];
     self.receivedResp = nil;
     self.sent = NO;
@@ -76,12 +72,12 @@
     return self;
 }
 
-- (PhxPush*)after:(int)ms callback:(After)callback {
+- (PhxPush*)after:(NSTimeInterval)seconds callback:(After)callback {
     if (self.afterHook) {
         // ERROR
     }
-    self.afterTimer = [NSTimer scheduledTimerWithTimeInterval:ms target:self selector:@selector(afterTimerFire:) userInfo:nil repeats:NO];
-    self.afterInterval = ms;
+    self.afterTimer = [NSTimer scheduledTimerWithTimeInterval:seconds target:self selector:@selector(afterTimerFire:) userInfo:nil repeats:NO];
+    self.afterInterval = seconds;
     self.afterHook = callback;
     return self;
 }

@@ -24,8 +24,8 @@
 @property (nonatomic, weak) id<PhxSocketDelegate> delegate;
 @property (nonatomic, readwrite) BOOL reconnectOnError;
 
-- (id)initWithURL:(NSURL*)url;
-- (id)initWithURL:(NSURL*)url heartbeatInterval:(int)interval;
+- (instancetype)initWithURL:(NSURL*)url;
+- (instancetype)initWithURL:(NSURL*)url heartbeatInterval:(NSTimeInterval)interval;
 
 - (void)connect;
 - (void)connectWithParams:(NSDictionary*)params;

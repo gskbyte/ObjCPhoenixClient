@@ -11,15 +11,19 @@
 
 @class PhxChannel;
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface PhxPush : NSObject
 
-- (id)initWithChannel:(PhxChannel*)channel
-                event:(NSString*)event
-              payload:(NSDictionary*)payload;
+- (instancetype)initWithChannel:(PhxChannel*)channel
+                          event:(NSString*)event
+                        payload:(NSDictionary*)payload;
 
 - (void)send;
 
-- (PhxPush*)onReceive:(NSString*)status callback:(OnMessage)callback;
-- (PhxPush*)after:(int)ms callback:(After)callback;
+- (PhxPush *)onReceive:(NSString*)status callback:(OnMessage)callback;
+- (PhxPush *)after:(NSTimeInterval)ms callback:(After)callback;
 
 @end
+
+NS_ASSUME_NONNULL_END

@@ -13,39 +13,39 @@
 #import "PhxChannel_Private.h"
 #import "NSDictionary+QueryString.h"
 
-static NSTimeInterval reconnectInterval = 5;
+static NSTimeInterval kReconnectInterval = 5;
 
 @interface PhxSocket () <SRWebSocketDelegate>
 
-@property (nonatomic, retain) SRWebSocket *socket;
-@property (nonatomic, retain) NSURL *URL;
-@property (nonatomic, assign) int heartbeatInterval;
+@property (nonatomic) SRWebSocket *socket;
+@property (nonatomic) NSURL *URL;
+@property (nonatomic) NSTimeInterval heartbeatInterval;
 
-@property (nonatomic, retain) NSMutableArray *channels;
-@property (nonatomic, strong) NSOperationQueue *queue;
+@property (nonatomic) NSMutableArray *channels;
+@property (nonatomic) NSOperationQueue *queue;
 
-@property (nonatomic, retain) NSTimer *sendBufferTimer;
-@property (nonatomic, retain) NSTimer *reconnectTimer;
-@property (nonatomic, retain) NSTimer *heartbeatTimer;
+@property (nonatomic) NSTimer *sendBufferTimer;
+@property (nonatomic) NSTimer *reconnectTimer;
+@property (nonatomic) NSTimer *heartbeatTimer;
 
-@property (nonatomic, retain) NSMutableArray *openCallbacks;
-@property (nonatomic, retain) NSMutableArray *closeCallbacks;
-@property (nonatomic, retain) NSMutableArray *errorCallbacks;
-@property (nonatomic, retain) NSMutableArray *messageCallbacks;
+@property (nonatomic) NSMutableArray *openCallbacks;
+@property (nonatomic) NSMutableArray *closeCallbacks;
+@property (nonatomic) NSMutableArray *errorCallbacks;
+@property (nonatomic) NSMutableArray *messageCallbacks;
 
-@property (nonatomic, retain) NSDictionary *params;
+@property (nonatomic) NSDictionary *params;
 
-@property (readwrite) int ref;
+@property NSUInteger ref;
 
 @end
 
 @implementation PhxSocket
 
-- (id)initWithURL:(NSURL*)url {
+- (instancetype)initWithURL:(NSURL*)url {
     return [self initWithURL:url heartbeatInterval:0];
 }
 
-- (id)initWithURL:(NSURL*)url heartbeatInterval:(int)interval {
+- (instancetype)initWithURL:(NSURL*)url heartbeatInterval:(NSTimeInterval)interval {
     self = [super init];
     if (self) {
         self.URL = url;
@@ -74,14 +74,13 @@ static NSTimeInterval reconnectInterval = 5;
     NSURL *url;
     self.params = params;
     if (self.params != nil) {
-        
         url = [NSURL URLWithString:[NSString stringWithFormat:@"%@?%@", [self.URL absoluteString], [self.params queryStringValue]]];
     } else {
         url = self.URL;
     }
     
     NSLog(@"URL: %@", url);
-    self.socket = [[SRWebSocket alloc]initWithURL:url];
+    self.socket = [[SRWebSocket alloc] initWithURL:url];
     self.socket.delegate = self;
     [self.socket open];
 }
@@ -105,19 +104,14 @@ static NSTimeInterval reconnectInterval = 5;
     switch (self.socket.readyState) {
         case 0:
             return SocketConnecting;
-            break;
         case 1:
             return SocketOpen;
-            break;
         case 2:
             return SocketClosing;
-            break;
         case 3:
             return SocketClosed;
-            break;
         default:
             return SocketClosed;
-            break;
     }
 }
 
@@ -211,7 +205,11 @@ static NSTimeInterval reconnectInterval = 5;
     
     if (self.reconnectOnError) {
         [self discardReconnectTimer];
-        self.reconnectTimer = [NSTimer scheduledTimerWithTimeInterval:reconnectInterval target:self selector:@selector(reconnect) userInfo:nil repeats:YES];
+        self.reconnectTimer = [NSTimer scheduledTimerWithTimeInterval:kReconnectInterval
+                                                               target:self
+                                                             selector:@selector(reconnect)
+                                                             userInfo:nil
+                                                              repeats:YES];
     }
     [self discardHeartbeatTimer];
     
@@ -244,11 +242,11 @@ static NSTimeInterval reconnectInterval = 5;
     NSData *data = [rawMessage dataUsingEncoding:NSUTF8StringEncoding];
     NSError *error;
     id json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-    if (!error) {
-        NSString *topic = [json valueForKey:@"topic"];
-        NSString *event = [json valueForKey:@"event"];
-        NSString *payload = [json valueForKey:@"payload"];
-        NSString *ref = [json valueForKey:@"ref"];
+    if (!error && [json isKindOfClass:[NSDictionary class]]) {
+        NSString *topic = json[@"topic"];
+        NSString *event = json[@"event"];
+        NSString *payload = json[@"payload"];
+        NSString *ref = json[@"ref"];
         NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(PhxChannel *channel, NSDictionary *bindings) {
             return [channel.topic isEqualToString:topic];
         }];
@@ -277,11 +275,9 @@ static NSTimeInterval reconnectInterval = 5;
 }
 
 - (NSString*)makeRef {
-    // TODO: Catch integer overflow
-    int newRef = self.ref + 1;
-    return [NSString stringWithFormat:@"%i", newRef];
+    self.ref += 1;
+    return [NSString stringWithFormat:@"%zd", self.ref];
 }
-
 
 #pragma mark - SRWebSocket Delegate
 

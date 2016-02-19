@@ -25,7 +25,9 @@
 
 @implementation PhxChannel
 
-- (id)initWithSocket:(PhxSocket *)socket topic:(NSString *)topic params:(NSDictionary *)params {
+- (instancetype)initWithSocket:(PhxSocket *)socket
+                         topic:(NSString *)topic
+                        params:(NSDictionary *)params {
     self = [super init];
     if (self) {
         self.state = ChannelClosed;

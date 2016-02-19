@@ -8,7 +8,8 @@
 
 #import "NSString+URLEncoding.h"
 
-@implementation NSString (URLEncoding)
+@implementation NSString (PhoenixURLEncoding)
+
 - (NSString *)URLEncodedString
 {
     __autoreleasing NSString *encodedString;
@@ -35,4 +36,5 @@
                                                                                                           );
     return decodedString;
 }
+
 @end
